@@ -92,7 +92,7 @@ RawSQLizer.prototype._getBetweenStatement = function(exp, op) {
 
     const [from, to] = exp.value.split('*');
     return {
-        query: exp.field+' '+op+' :'+exp.key+'0 AND :'+exp.key+'1',
+        query: op+' :'+exp.key+'0 AND :'+exp.key+'1',
         replacements: {
             [exp.key+0]: from,
             [exp.key+1]: to
