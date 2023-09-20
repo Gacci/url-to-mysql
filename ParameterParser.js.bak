@@ -228,8 +228,6 @@ ParameterParser.prototype._getSubstr = function(str, target, from) {
 
 ParameterParser.prototype.lexerize = function (str) {
     const expression = new Expression();
-	
-	this.stack = [];
     for (let i = 0; i < str.length; i++) {
         const chr = str.charAt(i);
 
