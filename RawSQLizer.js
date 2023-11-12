@@ -6,7 +6,9 @@ const Op = {
     in: 'IN',
     notIn: 'NOT IN',
     like: 'LIKE',
-    notLike: 'NOT LIKE'
+    notLike: 'NOT LIKE',
+	is: 'IS',
+	not: 'IS NOT'
 };
 
 
@@ -88,8 +90,6 @@ RawSQLizer.prototype._toExpressionArguments = function(exp) {
 
 
 RawSQLizer.prototype._getBetweenStatement = function(exp, op) {
-
-
     const [from, to] = exp.value.split('*');
     return {
         query: exp.field+' '+op+' :'+exp.key+'0 AND :'+exp.key+'1',
@@ -133,20 +133,26 @@ RawSQLizer.prototype._getSequelizeOperator = function(op) {
         case '!=':
         case '=':
         case '>=':
+		case '>':
         case '<=':
+		case '<':
             return op;
         case '!~':
-            return 'NOT LIKE';
+            return Op.notLike;
         case '~':
-            return 'LIKE';
+            return Op.like;
         case '><':
-            return 'BETWEEN';
+            return Op.between;
         case '>!<':
-            return 'NOT BETWEEN';
+            return Op.notBetween;
         case '{.}':
-            return 'IN';
+            return Op.in;
         case '{!}':
-            return 'NOT IN';
+            return Op.notIn;
+		case '<>':
+			return Op.is;
+		case '<!>':
+			return Op.not;
         default:
             throw new Error(`Bad Operator ${op}`);
     }

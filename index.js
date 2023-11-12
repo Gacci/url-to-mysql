@@ -25,7 +25,9 @@ const qsa = [
     'status:{.}:pending|cancelled',
     'state:{!}:CA|AZ',
     'asOfDate:=:2023-01-01',
-    'asOfDate:><:2023-01-01*2023-01-31'
+    'asOfDate:><:2023-01-01*2023-01-31',
+	'workEmail:<!>:NULL',
+	'personalEmail:<!>:NULL'
 ];
 
 
