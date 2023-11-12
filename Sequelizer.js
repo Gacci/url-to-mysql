@@ -118,6 +118,10 @@ Sequelizer.prototype._getSequelizeOperator = function(op) {
             return Op.in;
         case '{!}':
             return Op.notIn;
+		case '<>':
+			return Op.is;
+		case '<!>':
+			return Op.not;
         default:
             throw new Error(`Bad Operator ${op}`);
     }
