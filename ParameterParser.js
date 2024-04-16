@@ -65,7 +65,6 @@
  *
  */
 
-
 /*
 const ParameterParser = function(url) {
     this.url = url;
@@ -165,157 +164,151 @@ ParameterParser.prototype.parse = function(str) {
 module.exports = ParameterParser;
 */
 
-
-
-
-
-
-
-
-
-
 /*
  * Expression class
  */
 function Expression() {
-    this.tmp = '';
-    this.key = '';
-    this.value = '';
-    this.op = '';
+  this.tmp = "";
+  this.key = "";
+  this.value = "";
+  this.op = "";
 }
 
 Expression.prototype.reset = function () {
-    this.tmp = '';
-    this.value = '';
-    this.key = '';
-    this.op = '';
+  this.tmp = "";
+  this.value = "";
+  this.key = "";
+  this.op = "";
 };
 
 Expression.prototype.addExpression = function (parser) {
-    parser.stack.push({
-        key: this.key,
-        op: this.op,
-        value: this.value,
-    });
+  parser.stack.push({
+    key: this.key,
+    op: this.op,
+    value: this.value,
+  });
 
-    this.reset();
+  this.reset();
 };
-
 
 /*
  * ParameterParser class
  */
 const ParameterParser = function (url) {
-    this.url = url;
-    this.stack = [];
+  this.url = url;
+  this.stack = [];
 };
 
+ParameterParser.prototype._getSubstr = function (str, target, from) {
+  let chr = "";
+  let tmp = "";
+  let i = from;
 
-ParameterParser.prototype._getSubstr = function(str, target, from) {
-    let chr = '';
-    let tmp = '';
-    let i = from;
+  do {
+    tmp += chr;
+    i++;
+    chr = str.charAt(i);
+  } while (target.indexOf(chr) === -1 && i < str.length);
 
-    do {
-        tmp += chr;
-        i++;
-        chr = str.charAt(i);
-    } while (target.indexOf(chr) === -1 && i < str.length);
-
-    return tmp;
+  return tmp;
 };
-
 
 ParameterParser.prototype.lexerize = function (str) {
-    const expression = new Expression();
-	
-	this.stack = [];
-    for (let i = 0; i < str.length; i++) {
-        const chr = str.charAt(i);
+  const expression = new Expression();
 
-        if (chr === ParameterParser.COLON) {
-            if (expression.op === '' && expression.key !== '') {
-                expression.op = String(expression.tmp);
-                expression.tmp = '';
+  this.stack = [];
+  for (let i = 0; i < str.length; i++) {
+    const chr = str.charAt(i);
 
-                const nextChr = str.charAt(i + 1);
-                if (nextChr !== ParameterParser.OPENING_PARENTHESIS &&
-                    ParameterParser.OPENING_SQUARE_BRACKET !== nextChr) {
-                    expression.value = this._getSubstr(str, ParameterParser.COMMA, i);
-                        i += expression.value.length;
+    if (chr === ParameterParser.COLON) {
+      if (expression.op === "" && expression.key !== "") {
+        expression.op = String(expression.tmp);
+        expression.tmp = "";
 
-                    expression.addExpression(this);
-                }
-            } else if (expression.key === '') {
-                expression.key = String(expression.tmp);
-                expression.tmp = '';
-            }
-        } else if (chr === ParameterParser.OPENING_SQUARE_BRACKET ||
-                    ParameterParser.OPENING_PARENTHESIS === chr) {
-            const delimiter = chr === ParameterParser.OPENING_SQUARE_BRACKET
-                ? ParameterParser.CLOSING_SQUARE_BRACKET
-                : ParameterParser.CLOSING_PARENTHESIS;
+        const nextChr = str.charAt(i + 1);
+        if (
+          nextChr !== ParameterParser.OPENING_PARENTHESIS &&
+          ParameterParser.OPENING_SQUARE_BRACKET !== nextChr
+        ) {
+          expression.value = this._getSubstr(str, ParameterParser.COMMA, i);
+          i += expression.value.length;
 
-            const raw = this._getSubstr(str, delimiter, i);
-                i += raw.length + 1;
-
-            expression.value = expression.tmp + chr + raw + delimiter;
-            expression.addExpression(this);
-        } else if (chr !== ParameterParser.COMMA) {
-            expression.tmp += chr;
+          expression.addExpression(this);
         }
-    }
+      } else if (expression.key === "") {
+        expression.key = String(expression.tmp);
+        expression.tmp = "";
+      }
+    } else if (
+      chr === ParameterParser.OPENING_SQUARE_BRACKET ||
+      ParameterParser.OPENING_PARENTHESIS === chr
+    ) {
+      const delimiter =
+        chr === ParameterParser.OPENING_SQUARE_BRACKET
+          ? ParameterParser.CLOSING_SQUARE_BRACKET
+          : ParameterParser.CLOSING_PARENTHESIS;
 
-    return this.stack;
+      const raw = this._getSubstr(str, delimiter, i);
+      i += raw.length + 1;
+
+      expression.value = expression.tmp + chr + raw + delimiter;
+      expression.addExpression(this);
+    } else if (chr !== ParameterParser.COMMA) {
+      expression.tmp += chr;
+    }
+  }
+
+  return this.stack;
 };
 
 ParameterParser.prototype.parse = function (str) {
-    const collection = this.lexerize(str);
-    collection.forEach((exp) => {
-        if ( exp.value.startsWith(ParameterParser.OPENING_SQUARE_BRACKET) &&
-            !exp.value.endsWith(ParameterParser.CLOSING_SQUARE_BRACKET)) {
-            throw new Error("BadFormat: Unbalanced brackets.");
-        }
-        else if ( exp.value.startsWith(ParameterParser.OPENING_PARENTHESIS) &&
-            !exp.value.endsWith(ParameterParser.CLOSING_PARENTHESIS)) {
-            throw new Error("BadFormat: Unbalanced parenthesis.");
-        }
-        else if ( exp.op === '><' || '>!<' === exp.op ) {
-            if ( !/^.+\*.+$/.test(exp.value) ) {
-                throw new Error("BadValue: Invalid range format.");
-            }
-        }
-    });
+  const collection = this.lexerize(str);
+  collection.forEach((exp) => {
+    if (
+      exp.value.startsWith(ParameterParser.OPENING_SQUARE_BRACKET) &&
+      !exp.value.endsWith(ParameterParser.CLOSING_SQUARE_BRACKET)
+    ) {
+      throw new Error("BadFormat: Unbalanced brackets.");
+    } else if (
+      exp.value.startsWith(ParameterParser.OPENING_PARENTHESIS) &&
+      !exp.value.endsWith(ParameterParser.CLOSING_PARENTHESIS)
+    ) {
+      throw new Error("BadFormat: Unbalanced parenthesis.");
+    } else if (exp.op === "><" || ">!<" === exp.op) {
+      if (!/^.+\*.+$/.test(exp.value)) {
+        throw new Error("BadValue: Invalid range format.");
+      }
+    }
+  });
 
-    return collection;
+  return collection;
 };
 
-
 Object.defineProperties(ParameterParser, {
-    OPENING_SQUARE_BRACKET: {
-        value: '[',
-        writable: true
-    },
-    CLOSING_SQUARE_BRACKET: {
-        value: ']',
-        writable: false,
-    },
-    COLON: {
-        value: ':',
-        writable: false,
-    },
-    COMMA: {
-        value: ',',
-        writable: false
-    },
-    OPENING_PARENTHESIS: {
-        value: '(',
-        writable: false,
-    },
-    CLOSING_PARENTHESIS: {
-        value: ')',
-        writable: false
-    }
+  OPENING_SQUARE_BRACKET: {
+    value: "[",
+    writable: false,
+  },
+  CLOSING_SQUARE_BRACKET: {
+    value: "]",
+    writable: false,
+  },
+  COLON: {
+    value: ":",
+    writable: false,
+  },
+  COMMA: {
+    value: ",",
+    writable: false,
+  },
+  OPENING_PARENTHESIS: {
+    value: "(",
+    writable: false,
+  },
+  CLOSING_PARENTHESIS: {
+    value: ")",
+    writable: false,
+  },
 });
 
 module.exports = ParameterParser;
